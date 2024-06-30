@@ -161,13 +161,15 @@ void setup_SPIFFS(){
     }
     
     listDir(SPIFFS, "/", 0);
-    writeFile(SPIFFS, "/hello.txt", "Hello ");
-    appendFile(SPIFFS, "/hello.txt", "World!\r\n");
-    readFile(SPIFFS, "/hello.txt");
-    renameFile(SPIFFS, "/hello.txt", "/foo.txt");
-    readFile(SPIFFS, "/foo.txt");
-    deleteFile(SPIFFS, "/foo.txt");
-    testFileIO(SPIFFS, "/test.txt");
-    //deleteFile(SPIFFS, "/test.txt");
-    Serial.println( "Test complete" );
+    
+    // appendFile(SPIFFS, "/hello.txt", "World!\r\n");
+    readFile(SPIFFS, "/test.txt");
+    writeFile(SPIFFS, "/test.txt", "Hello ");
+    readFile(SPIFFS, "/test.txt");
+    // renameFile(SPIFFS, "/hello.txt", "/foo.txt");
+    // readFile(SPIFFS, "/foo.txt");
+    // deleteFile(SPIFFS, "/foo.txt");
+    // testFileIO(SPIFFS, "/test.txt");
+    // deleteFile(SPIFFS, "/test.txt");
+    // Serial.println( "Test complete" );
 }
