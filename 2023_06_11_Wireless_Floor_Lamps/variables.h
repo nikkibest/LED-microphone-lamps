@@ -31,8 +31,8 @@ bool isRunning = false;
 uint8_t brightnessVal = (uint8_t)BRIGHTNESS_MAX;
 uint8_t oldRotaryBrightnessVal = 0;
 bool printButton = true;
-double battery_Vout = 0;
-double battery_Vsource = 0;
+float battery_Vout = 0;
+float battery_Vsource = 0;
 const uint8_t batteryLevelReadingsSec = 1;
 const uint8_t R1 = 550;
 const uint8_t R2 = 2000;
@@ -88,8 +88,7 @@ void turnOffLEDs(uint8_t incrment) {
   int k = 0;
   while (k < NUM_LEDS)
   {
-    if (!((k % incrment) == 0))
-    {
+    if (!((k % incrment) == 0)) {
       leds[k] = CRGB(0, 0, 0);
     }
     k++;
@@ -129,6 +128,25 @@ void batteryAlarm(uint8_t typeOfAlarm) {
     }
     directionDown != directionDown;
     counter++;
+  }
+}
+
+void readBatteryLevel() {
+  if (true) { 
+    battery_Vout = fscale(0.00, 4095.00, 0.00, 3.30, analogRead(BATTERY_PIN), 0);
+    battery_Vsource = battery_Vout * 1.275; // (R1+R2)*R2
+    if (!bSerialPrinterALL) {
+      Serial.print("battery_Vout:");
+      Serial.print(battery_Vout);
+      Serial.print(",");
+      Serial.print("battery_Vsource:");
+      Serial.println(battery_Vsource);
+    }
+    if (battery_Vout < 20) {
+      // batteryAlarm(1); //red alarm
+    } else if (battery_Vout < 40) {
+      // batteryAlarm(2); // yellow warning
+    }
   }
 }
 
@@ -196,26 +214,7 @@ float fscale(float originalMin, float originalMax, float newBegin, float newEnd,
   return (float)rangedValue;
 }
 
-void readBatteryLevel() {
-  if (true) {
-    // battery_Vout = map(analogRead(BATTERY_PIN), 0.0f, 4095.0f, 0.0, 3.3);
-    
-    battery_Vout = fscale(0.00, 4095.00, 0.00, 3.30, analogRead(BATTERY_PIN), 0);
-    battery_Vsource = battery_Vout * 1.275; // (R1+R2)*R2
-    if (!bSerialPrinterALL) {
-      Serial.print("battery_Vout:");
-      Serial.print(battery_Vout);
-      Serial.print(",");
-      Serial.print("battery_Vsource:");
-      Serial.println(battery_Vsource);
-    }
-    if (battery_Vout < 20) {
-      // batteryAlarm(1); //red alarm
-    } else if (battery_Vout < 40) {
-      // batteryAlarm(2); // yellow warning
-    }
-  }
-}
+
 
 
 
