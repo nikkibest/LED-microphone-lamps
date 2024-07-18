@@ -6,19 +6,25 @@ void rotary_onButtonClick()
       return;
     }
     lastTimePressed = millis();
+    // change button state
+    switch (buttonState) {
+      case soundState:
+        buttonState = soundStateBrightness; break;
+      case soundStateBrightness:
+        buttonState = patternState; break;
+      case patternState:
+        buttonState = patternStateBrightness; break;
+      case patternStateBrightness:
+        buttonState = soundState; break;
+      default:
+        Serial.println("Undefined buttonState!"); break;
+    }
+}
+
     buttonState++;
     buttonState = buttonState % 4;
-    buttonPushed = true;
 
-    if (buttonState == 0) {
-      setLEDColor(255, 0, 0);
-    } else if (buttonState == 1) {
-      setLEDColor(0, 255, 0);
-    } else if (buttonState == 2) {
-      setLEDColor(0, 0, 255);
-    }  else if (buttonState == 3) {
-      setLEDColor(170, 0, 255);
-    }
+    buttonPushed = true;
 }
 
 void rotary_loop()
@@ -26,7 +32,6 @@ void rotary_loop()
   if (rotaryEncoder.isEncoderButtonClicked())    {
     rotary_onButtonClick();
   }
-
   static unsigned long lastTimePressed = 0;
   if (buttonState == 1 || buttonState == 3) {
     if (buttonPushed) {
@@ -48,7 +53,7 @@ void rotary_loop()
     rotaryEncoderVal = rotaryEncoder.readEncoder();
   }
   
-  if (0) {printRotary();}
+  if (bPrint_rot) {printRotary();}
 }
 
 void printRotary() {
