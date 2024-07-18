@@ -1,3 +1,6 @@
+#ifndef VARIABLES_H
+#define VARIABLES_H
+
 //////////////////// Rotary Encoder variables ////////////////////////////////
 #include <stdlib.h>
 #define ROTARY_ENCODER_A_PIN 32
@@ -6,7 +9,15 @@
 #define ROTARY_ENCODER_VCC_PIN -1
 #define ROTARY_ENCODER_STEPS 4
 
-uint8_t buttonState = 0;
+namespace ButtonState {
+  enum states {
+    soundState, // 0
+    soundStateBrightness, // 1
+    patternState, // 2
+    patternStateBrightness // 3
+  }
+}
+enum ButtonState buttonState = soundState;
 uint8_t rotaryEncoderVal = 0;
 bool buttonPushed = false;
 
@@ -14,27 +25,28 @@ bool buttonPushed = false;
 #define REDPIN 27
 #define GREENPIN 14
 #define BLUEPIN 12
+uint8_t ii_LED = 0;
+bool bAlarmOn = false;
 
-void setLEDColor(int redValue, int greenValue, int blueValue) {
-  float scaleVal = 0.3;
-  analogWrite(REDPIN, int(scaleVal*redValue));
-  analogWrite(GREENPIN, int(scaleVal*greenValue));
-  analogWrite(BLUEPIN, int(scaleVal*blueValue));
-}
+//////////////////// Timers ///////////////////////////
+unsigned long current_time  = 0;
 
-void setupLED() {
-  pinMode(REDPIN, OUTPUT);
-  pinMode(GREENPIN, OUTPUT);
-  pinMode(BLUEPIN, OUTPUT);
+//////////////////// Print variables ///////////////////
+bool bPrint_mic     = false;
+bool bPrint_rot     = false;
+bool bPrint_battery = false;
 
-  setLEDColor(255, 255, 255);
-}
+//////////////////// Battery Level /////////////////////
+#define BATTERY_PIN 10 // TODO <-----!
+float battery_adc;      // battery ADC value
+float battery_Vout;     // battery voltage value
+float battery_Vsource;  // battery voltage value at source
+uint8_t typeOfBatAlarm = 0;// 0=noAlarm, 1=yellowAlarm, 2=redAlarm
+// const uint8_t R1 = 550; // resistor 1
+// const uint8_t R2 = 2000;// resistor 2
 
 //////////////////// Microphone variables ////////////////////////////////
 // select the input  pin for  the potentiometer
-unsigned long current_MIC  = 0;
-unsigned long previous_MIC = 0;
-
 const int micPinAnalog = 35;
 const int micArrLen = 20;
 
@@ -60,11 +72,12 @@ struct averageCounter{
 
   bool setSample(unsigned short val) {
     if (counter < sample_size) {
-      samples[counter++] = val;
+      samples[counter++] = val; // sets counter'th index value
       return true;
     }
     else {
       counter = 0;
+      samples[counter] = val; // sets 0th index value
       return false;
     }
   }
@@ -74,15 +87,12 @@ struct averageCounter{
     for (int i = 0; i < sample_size; i++) {
       accumulator += samples[i];
     }
-    return (int)(accumulator / sample_size);
+    return (int)(accumulator / sample_size); // average value
   }
 };
 
 
 ////////////////////// ESP NOW variables /////////////////////////
-// Timer
-unsigned long current_ESP  = 0;
-unsigned long previous_ESP = 0;
 // struct containing data to send
 typedef struct test_struct {
   uint16_t useVal;
@@ -102,3 +112,5 @@ esp_now_peer_info_t peerInfo;
 uint8_t broadcastAddress1[] = {0x9C, 0x9C, 0x1F, 0xE2, 0x0B, 0x30};
 uint8_t broadcastAddress2[] = {0x08, 0x3A, 0xF2, 0xAC, 0xFF, 0xB0};
 uint8_t broadcastAddress3[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+#endif
