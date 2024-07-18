@@ -7,6 +7,7 @@
 #include "variables.h"
 #include "ESP_NOW.h"
 #include "SPIFFS_fcns.h"
+#include "batteryLvl.h"
 #include <math.h>
 
 // We don't need to include the .ino files, bcs the compiler automatically combines all .ino files
@@ -25,10 +26,10 @@ void setup() {
 
   samples = new averageCounter(10);
   longTermSamples = new averageCounter(250);
-  while (longTermSamples->setSample(200) == true) {}
+  while (longTermSamples->setSample(200) == true) {} // fills longTermSamples up with 200 values
 
   // Setup LED
-  void setupLED();
+  setupLED();
   // Setup rotary
   rotarySetup();
   // Set timer and pins
@@ -41,19 +42,21 @@ void setup() {
 
 void loop() {
   // Microphone and rotary sensor
-  current_MIC = millis();
-  if ((current_MIC-previous_MIC) > 10){ // 10 ms interval
-    //rotary encoder values
-    rotary_loop();
-    // Microphone
-    mic_loop();
-    current_MIC = previous_MIC;
-  }
+  current_time = millis();
+  bool bInterval_mic = ((current_time % 10) > 8.9);   // 10 ms interval
+  bool bInterval_esp = ((current_time % 100) > 98.9); // 100 ms interval
 
-  // ESP-NOW
-  current_ESP = millis();
-  if ((current_ESP-previous_ESP) > 100){ // 100 ms interval
-    ESPNOW_loop(useVal, longTermAverage, buttonState, rotaryEncoderVal);
-    previous_ESP=current_ESP;
+  if (bInterval_mic){ 
+    rotary_loop(); // sets: buttonPushed & rotaryEncoderVal
+    mic_loop();    // sets: useVal & longTermAverage
+
+    readBatteryLevel();
+    checkBatteryLevel();
+    if (typeOfBatAlarm > 0) {
+      activateBatteryAlarm();
+    }
+  }
+  if (bInterval_esp){ 
+    ESPNOW_loop(useVal, longTermAverage, buttonState, rotaryEncoderVal); // sends to all peers added
   }
 }
