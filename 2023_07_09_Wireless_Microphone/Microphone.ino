@@ -4,28 +4,15 @@ void mic_loop() {
   
   float analogRaw_fscale = fscale(MIC_LOW, MIC_HIGH, MIC_LOW, MIC_HIGH, analogRaw, 0.4); // 0.4 is curve value. Can be between 10 and -10
 
-  if (samples->setSample(analogRaw_fscale))
-    return;
-  
-  longTermAverage = longTermSamples->computeAverage();
-  useVal = samples->computeAverage();
-  longTermSamples->setSample(useVal);
+  samples->setSample(analogRaw_fscale); // adds analogRaw_fscale to samples array
+  useVal = samples->computeAverage();   // computes average of samples, useVal
+  longTermSamples->setSample(useVal);   // adds useVal to longTermSamples
+  longTermAverage = longTermSamples->computeAverage(); // computes longTermSamples average
+
 
   int diff = (useVal - longTermAverage);
 
-  if (0) { printMic(analogRaw, analogRaw_fscale, diff); }
-  
-//   queueOperation(mic.raw, analogRaw);
-//   // LPF(mic.raw, mic.raw_lpf, micArrLen, Ts, 0.3);
-
-//   int Top = 0, Bot = 32767;
-//   for (int ii = 0; ii < micArrLen; ii++) {
-//     Top = max(Top, mic.raw[ii]);
-//     Bot = min(Bot, mic.raw[ii]);
-//   }
-//   mic.diffTopBot = mic.raw[0] - Bot + Top - mic.raw[0];
-//   mic.top = Top;
-//   mic.bot = Bot;
+  if (bPrint_mic) { printMic(analogRaw, analogRaw_fscale, diff); }
 }
 
 // // Fun fact: Arrays (which actually are pointers) pass by reference by default
