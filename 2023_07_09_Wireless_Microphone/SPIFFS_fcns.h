@@ -161,15 +161,129 @@ void setup_SPIFFS(){
     }
     
     listDir(SPIFFS, "/", 0);
+    writeFile(SPIFFS, "/batteryLevel.txt", "4.2"); // overwrites or makes a new file
+
     
     // appendFile(SPIFFS, "/hello.txt", "World!\r\n");
-    readFile(SPIFFS, "/test.txt");
-    writeFile(SPIFFS, "/test.txt", "Hello ");
-    readFile(SPIFFS, "/test.txt");
+    // readFile(SPIFFS, "/test.txt");
+    // writeFile(SPIFFS, "/test.txt", "Hello ");
+    // readFile(SPIFFS, "/test.txt");
     // renameFile(SPIFFS, "/hello.txt", "/foo.txt");
     // readFile(SPIFFS, "/foo.txt");
     // deleteFile(SPIFFS, "/foo.txt");
     // testFileIO(SPIFFS, "/test.txt");
     // deleteFile(SPIFFS, "/test.txt");
     // Serial.println( "Test complete" );
+}
+
+void appendBatteryLevel(){
+  char strBattery_Vsource[5];
+  floatToString(battery_Vsource, strBattery_Vsource, sizeof(strBattery_Vsource), 2)
+  appendFile(SPIFFS, "/batteryLevel.txt", strBattery_Vsource);
+}
+
+
+
+void serialInput_loop() {
+  while (Serial.available() > 0) {
+    char incomingByte = Serial.read();
+    if (incomingByte == '\n') {
+      inputBuffer[ii_buffer] = '\0';  // Null-terminate the string
+      checkInput(inputBuffer);
+      ii_buffer = 0;  // Reset ii_buffer for the next input
+    } else {
+      inputBuffer[ii_buffer++] = incomingByte;
+      if (ii_buffer >= sizeof(inputBuffer) - 1) {
+        ii_buffer = sizeof(inputBuffer) - 1;
+      }
+    }
+  } 
+}
+
+void checkInput(char inputBuffer[])
+{
+  bool bInputCorrect = false;
+  for (int ii=0; ii<strlen(inputBuffer); ii++) {
+    if (inputBuffer[ii] == 'p') {
+      bInputCorrect = changePrintBools(inputBuffer[ii+1]);
+    } else if (inputBuffer[ii] == 's') {
+      char * pch;
+      pch = strtok (inputBuffer," ");
+
+      bool bFirstPchSkip = false;
+      bool bChangeSPIFFSrun = false;
+      while (pch != NULL)
+      {
+        if (bFirstPchSkip) {
+          bInputCorrect = changeSPIFFS(inputBuffer[ii+1], pch);
+          bChangeSPIFFSrun = true;
+        }
+        pch = strtok (NULL, " ,.-");
+        bFirstPchSkip = true;
+      }
+      if (!bChangeSPIFFSrun) {
+        char* pch = "";
+        bInputCorrect = changeSPIFFS(inputBuffer[ii+1], pch);
+      }
+    }
+  }
+
+  if (!bInputCorrect) {
+    Serial.println("Wrong serial input!");
+    Serial.println("Acceptable inputs are:");
+    Serial.println(" 'p' for print boolean changes followed by:");
+    Serial.println("   - 'm' for changing mic print boolean");
+    Serial.println("   - 'r' for changing rotary print boolean");
+    Serial.println("   - 'b' for changing battery print boolean \n");
+
+    Serial.println(" 's' for SPIFFS changes followed by:");
+    Serial.println("   - 'l' for listing SPIFFs file");
+    Serial.println("   - 'r' for reading SPIFFs file");
+    Serial.println("   - 'w' for writing SPIFFS file");
+    Serial.println("   - 't' for testing SPIFFS file");
+    Serial.println("   - 'd' for deleting SPIFFS file");
+  }
+}
+
+bool changeSPIFFS(char inputChar, char* filename) {
+  bool bInputCorrect = true;
+  bool bCheck = filename!="";
+  if (inputChar=='l') {
+    Serial.println("Listing SPIFFS file: ");
+  } else if (inputChar=='r' && bCheck) {
+    Serial.print("Reading SPIFFS file: ");
+    Serial.println(filename);
+  } else if (inputChar=='w' && bCheck) {
+    Serial.print("Writing SPIFFS file: ");
+    Serial.println(filename);
+  } else if (inputChar=='t' && bCheck) {
+    Serial.print("Testing SPIFFS file: ");
+    Serial.println(filename);
+  } else if (inputChar=='d' && bCheck) {
+    Serial.print("Deleting SPIFFS file: ");
+    Serial.println(filename);
+  } else {
+    bInputCorrect = false;
+  }
+  return bInputCorrect;
+}
+
+bool changePrintBools(char inputChar) {
+  bool bInputCorrect = true;
+  if (inputChar=='m') {
+    bPrint_mic = (!bPrint_mic);
+    Serial.print("Mic print bool toggled: ");
+    Serial.println(bPrint_mic);
+  } else if (inputChar=='r') {
+    bPrint_rot = (!bPrint_rot);
+    Serial.print("Rotary print bool toggled: ");
+    Serial.println(bPrint_rot);
+  } else if (inputChar=='b') {
+    bPrint_battery = (!bPrint_battery);
+    Serial.print("Battery print bool toggled: ");
+    Serial.println(bPrint_battery);
+  } else {
+    bInputCorrect = false;
+  }
+  return bInputCorrect;
 }

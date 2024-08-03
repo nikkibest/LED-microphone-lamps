@@ -3,6 +3,8 @@
 #include "AiEsp32RotaryEncoder.h"
 #include "FS.h"
 #include "SPIFFS.h"
+#include <floatToString.h>
+#include <string.h>
 
 #include "variables.h"
 #include "ESP_NOW.h"
@@ -45,16 +47,12 @@ void loop() {
   current_time = millis();
   bool bInterval_mic = ((current_time % 10) > 8.9);   // 10 ms interval
   bool bInterval_esp = ((current_time % 100) > 98.9); // 100 ms interval
+  serialInput_loop();
 
   if (bInterval_mic){ 
     rotary_loop(); // sets: buttonPushed & rotaryEncoderVal
     mic_loop();    // sets: useVal & longTermAverage
-
-    readBatteryLevel();
-    checkBatteryLevel();
-    if (typeOfBatAlarm > 0) {
-      activateBatteryAlarm();
-    }
+    battery_loop();// checks battery level. Overwrite LED
   }
   if (bInterval_esp){ 
     ESPNOW_loop(useVal, longTermAverage, buttonState, rotaryEncoderVal); // sends to all peers added
