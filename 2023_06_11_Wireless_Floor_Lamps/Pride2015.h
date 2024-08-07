@@ -3,24 +3,23 @@
 class Pride2015 {
   public:
     Pride2015(){};
-    void runPattern();
+    void runPattern(CRGB *LEDarray);
   
   private:
-    void prideLoop();
+    void prideLoop(CRGB *LEDarray);
     
     uint16_t sPseudotime = 0;
     uint16_t sLastMillis = 0;
     uint16_t sHue16 = 0;
 };
 
-void Pride2015::runPattern() {
+void Pride2015::runPattern(CRGB *LEDarray) {
   EVERY_N_MILLISECONDS(30) {
-    prideLoop();
+    prideLoop(LEDarray);
   }
-  // FastLED.show();
 }
 
-void Pride2015::prideLoop(){
+void Pride2015::prideLoop(CRGB *LEDarray){
   uint8_t sat8 = beatsin88( 87, 220, 250);
   uint8_t brightdepth = beatsin88( 341, 96, 224);
   uint16_t brightnessthetainc16 = beatsin88( 203, (25 * 256), (40 * 256));
@@ -52,6 +51,6 @@ void Pride2015::prideLoop(){
     uint16_t pixelnumber = i;
     pixelnumber = (NUM_LEDS-1) - pixelnumber;
     
-    nblend( leds[pixelnumber], newcolor, 64);
+    nblend( LEDarray[pixelnumber], newcolor, 64);
   }
 }

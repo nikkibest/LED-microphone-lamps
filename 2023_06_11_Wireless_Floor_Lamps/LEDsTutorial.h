@@ -4,10 +4,10 @@ class LEDsTutorial {
   public:
     LEDsTutorial(){};
     
-    void runPattern();
+    void runPattern(CRGB *LEDarray);
   
   private:
-    void blend_loop();
+    void blend_loop_local(CRGB *LEDarray);
     void runBlendPattern(uint8_t pattern, CRGB *LEDArray);
     void nextPattern();
     void LEDsWavesAndBlur(CRGB *LEDarray);
@@ -36,24 +36,23 @@ class LEDsTutorial {
     TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 };
 
-void LEDsTutorial::runPattern() {
+void LEDsTutorial::runPattern(CRGB *LEDarray) {
   EVERY_N_MILLISECONDS(30) {
-    blend_loop();
+    blend_loop_local(LEDarray);
   }
-  // FastLED.show();
 }
 
 ////////////////////////// Blend /////////////////////////////////////////////
-void LEDsTutorial::blend_loop() {
+void LEDsTutorial::blend_loop_local(CRGB *LEDarray) {
   ChangePalettePeriodically();
   EVERY_N_MILLISECONDS(10) {
     // Blend between the two sources into output
-    blend(source1, source2, leds, NUM_LEDS, blendAmount);
+    blend(source1, source2, LEDarray, NUM_LEDS, blendAmount);
 
     if (useSource1) {
-      if (blendAmount < 255) { blendAmount++; }
+      if (blendAmount > 0) { blendAmount--;}
     } else {
-      if (blendAmount > 0) { blendAmount--; }
+      if (blendAmount < 255) { blendAmount++; }
     }
   }
 

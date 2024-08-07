@@ -30,25 +30,50 @@ void setup() {
 }
  
 void loop() {
+  // Set led colors:
   if (espData.buttonState == 0 || espData.buttonState == 1) {
     runSound2023();
   } else if (espData.buttonState == 2 || espData.buttonState == 3) {
-    switch (patternCounter) {
-      case 1:
-        runFire2012();
-        break;
-      case 0:
-        runPacifica();
-        break;
-      case 2:
-        runPride2015();
-        break;
-      case 3:
-        runLEDsTutorial();
-        break;
-    }
-
+    blend_loop();
   }
+  // Check battery level
+  EVERY_N_SECONDS(batteryLevelReadingsSec){
+    readBatteryLevel();
+  }
+  // Check button, timer and turn off leds
+  EVERY_N_MILLISECONDS(20){
+    checkButton(); checkTimerAndRot(); turnOffLEDs(2);
+  }
+  FastLED.show();
+}
+
+void blend_loop() {
+  if (bBlendActive) {
+    runBlendPattern(source1Pattern, source1);
+    runBlendPattern(source2Pattern, source2);
+    EVERY_N_MILLISECONDS(20) {
+      // Blend between the two sources into output
+      blend(source1, source2, leds, NUM_LEDS, blendAmount); // An blendAmount value of 0 will result in 100% source1, and a value of 255 will result in 100% source2.
+      if (useSource1) {
+        if (blendAmount > 0) { blendAmount--;}
+      } else {
+        if (blendAmount < 255) { blendAmount++; }
+      }
+      if (blendAmount==255 || blendAmount==0)  {bBlendActive = false;}
+    }
+  } else {
+    if (useSource1) runBlendPattern(source1Pattern, leds);
+    else            runBlendPattern(source2Pattern, leds);
+  }
+}
+
+///// Next Pattern /////////////
+void nextPattern() {
+  patternCounter = (patternCounter+1)%3;
+  useSource1 = !useSource1;
+  if (useSource1) { source1Pattern = patternCounter; } 
+  else { source2Pattern = patternCounter; }
+  bBlendActive = true;
 }
 
 ///////////////// Button, Timer and NextPattern ///////////////////////
@@ -82,7 +107,7 @@ void checkTimerAndRot() {
     if (rotaryChanged) {
       EVERY_N_SECONDS(120) {
         isRunning = false;
-        patternCounter = (patternCounter + 1) % 2; // Goes from 0 to 1
+        nextPattern();
       }
     }
     
@@ -94,64 +119,58 @@ void checkTimerAndRot() {
       }
       lastTimeRotated         = millis();
       isRunning               = false; // Break pattern
-      patternCounter          = (patternCounter + 1) % 2; // Goes from 0 to 1
       oldRotaryEncoderVal     = espData.rotaryEncoderVal;
       oldRotaryBrightnessVal  = espData.rotaryEncoderVal;
       rotaryChanged           = false;
+      nextPattern();
     }
   }
 }
 
-////////////////////// LED run functions /////////////////////////////
+////////////////////// LED pattern functions /////////////////////////////
+void runBlendPattern(uint8_t pattern, CRGB *LEDArray) {
+  isRunning = true;
+  switch (pattern) {
+    case 0: {
+      if (bSerialPrinterALL) {Serial.println("Fire2012");}
+      Fire2012 fire = Fire2012();
+      while (isRunning) fire.runPattern(LEDArray);
+      break;
+    }
+    case 1: {
+      if (bSerialPrinterALL) {Serial.println("Pacifica");}
+      Pacifica paci = Pacifica(); //  turnOffLEDs(3);
+      while (isRunning) paci.runPattern(LEDArray);
+      break;
+    }
+    case 2: {
+      if (bSerialPrinterALL) {Serial.println("Pride2015");}
+      Pride2015 pride = Pride2015();
+      while (isRunning) pride.runPattern(LEDArray);
+      break;
+    }
+    case 3: {
+      if (bSerialPrinterALL) {Serial.println("LEDsTutorial");}
+      LEDsTutorial ledtut = LEDsTutorial();
+      while (isRunning) ledtut.runPattern(LEDArray);
+      break;
+    }
+  }
+}
+
 void runSound2023(){
   isRunning = true; if (bSerialPrinterALL) {Serial.println("Sound23");}
   Sound2023 sound2023 = Sound2023();
-  while(isRunning) {sound2023.runPattern(espData.useVal, espData.longTermAverage, patternCounter); checkButton(); turnOffLEDs(2);
-    EVERY_N_SECONDS(batteryLevelReadingsSec){
-      readBatteryLevel();
-    }
+  while(isRunning) {
+    sound2023.runPattern(leds, espData.useVal, espData.longTermAverage, patternCounter);
   }
 }
 
-void runLEDsTutorial(){
-  isRunning = true; if (bSerialPrinterALL) {Serial.println("LEDsTutorial");}
-  LEDsTutorial ledsTut = LEDsTutorial();
-  while(isRunning) {ledsTut.runPattern(); checkButton(); checkTimerAndRot(); turnOffLEDs(2);
-    EVERY_N_SECONDS(batteryLevelReadingsSec){
-      readBatteryLevel();
-    }
-  }
-}
 
-void runFire2012(){
-  isRunning = true; if (bSerialPrinterALL) {Serial.println("Fire2012");}
-  Fire2012 fire2012 = Fire2012();
-  while(isRunning) {fire2012.runPattern(); checkButton(); checkTimerAndRot(); turnOffLEDs(2);
-    EVERY_N_SECONDS(batteryLevelReadingsSec){
-      readBatteryLevel();
-    }
-  }
-}
 
-void runPacifica(){
-  isRunning = true; if (bSerialPrinterALL) {Serial.println("Pacifica");}
-  Pacifica pacifica = Pacifica();
-  while(isRunning) {pacifica.runPattern(); checkButton(); checkTimerAndRot(); turnOffLEDs(3);
-    EVERY_N_SECONDS(batteryLevelReadingsSec){
-      readBatteryLevel();
-    }
-  }
-}
 
-void runPride2015(){
-  isRunning = true; if (bSerialPrinterALL) {Serial.println("Pride2015");}
-  Pride2015 pride2015 = Pride2015();
-  while(isRunning) {pride2015.runPattern(); checkButton(); checkTimerAndRot(); turnOffLEDs(2);
-    EVERY_N_SECONDS(batteryLevelReadingsSec){
-      readBatteryLevel();
-    }
-  }
-}
+
+
 
 
 

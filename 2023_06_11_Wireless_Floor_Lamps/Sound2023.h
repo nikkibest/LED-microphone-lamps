@@ -3,11 +3,11 @@
 class Sound2023 {
   public:
     Sound2023(){};
-    void runPattern(float useVal, float longTermAverage, uint8_t patternCounter);
+    void runPattern(CRGB *LEDarray, float useVal, float longTermAverage, uint8_t patternCounter);
   
   private:
-    void soundLoopBeat(float useVal);
-    void soundReactive(float useVal, float longTermAverage);
+    void soundLoopBeat(CRGB *LEDarray, float useVal);
+    void soundReactive(CRGB *LEDarray, float useVal, float longTermAverage);
     uint16_t fscale(float originalMin, float originalMax, float newBegin, float newEnd, float inputValue, float curve);
     
     float globalHue = 0;
@@ -19,14 +19,14 @@ class Sound2023 {
     TBlendType    currentBlending;
 };
 
-void Sound2023::runPattern(float useVal, float longTermAverage, uint8_t patternCounter) {
+void Sound2023::runPattern(CRGB *LEDarray, float useVal, float longTermAverage, uint8_t patternCounter) {
   EVERY_N_MILLISECONDS(50){
-    if (patternCounter == 0) { soundReactive(useVal, longTermAverage); }
-    else      { soundLoopBeat(useVal); }
+    if (patternCounter == 0) { soundReactive(LEDarray, useVal, longTermAverage); }
+    else                     { soundLoopBeat(LEDarray, useVal); }
   }
 }
 
-void Sound2023::soundReactive(float useVal, float longTermAverage) {
+void Sound2023::soundReactive(CRGB *LEDarray, float useVal, float longTermAverage) {
   int diff = (useVal - longTermAverage);
   if (diff > 5)        { if (globalHue < 235)    {globalHue += hueIncrement; }  }
   else if (diff < -5)  { if (globalHue > 2)      {globalHue -= hueIncrement; }  }
@@ -35,12 +35,12 @@ void Sound2023::soundReactive(float useVal, float longTermAverage) {
 
   for (int i = 0; i < NUM_LEDS; i++)
   {
-    if (i < curshow) {leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);    }
-    else             {leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);}
+    if (i < curshow) {LEDarray[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);    }
+    else             {LEDarray[i] = CRGB(LEDarray[i].r / fadeScale, LEDarray[i].g / fadeScale, LEDarray[i].b / fadeScale);}
   }
 }
 
-void Sound2023::soundLoopBeat(float useVal) {
+void Sound2023::soundLoopBeat(CRGB *LEDarray, float useVal) {
   uint8_t posBeat1 = beatsin8(30, 0, 255); 
   uint8_t posBeat2 = beatsin8(20, 0, 255);
   currentPalette = RainbowColors_p;         
@@ -48,8 +48,8 @@ void Sound2023::soundLoopBeat(float useVal) {
 
   uint16_t beatVal = fscale(MIC_LOW, MIC_HIGH, 1.0, (float)NUM_LEDS, useVal, 0); // Goes from 1 to NUM_LEDS
   
-  fadeToBlackBy(leds, NUM_LEDS, 200);
-  fill_palette(leds, beatVal, (posBeat1 + posBeat2) / 2, 10, currentPalette, 255, currentBlending);
+  fadeToBlackBy(LEDarray, NUM_LEDS, 200);
+  fill_palette(LEDarray, beatVal, (posBeat1 + posBeat2) / 2, 10, currentPalette, 255, currentBlending);
 }
 
 uint16_t Sound2023::fscale(float originalMin, float originalMax, float newBegin, float newEnd, float inputValue, float curve){

@@ -20,12 +20,12 @@ test_struct espData;
 #define LED_TYPE    WS2811
 #define COLOR_ORDER GRB
 #define BATTERY_PIN  35
+#define MAX_PATTERNS 3
 
 //////////////////// Loop logic variables ///////////////////////
 bool bSerialPrinterALL = false;
 uint8_t oldRotaryEncoderVal = 0;
 uint8_t oldbuttonState = 0;
-uint8_t patternCounter = 0;
 bool rotaryChanged = true;
 bool isRunning = false;
 uint8_t brightnessVal = (uint8_t)BRIGHTNESS_MAX;
@@ -39,6 +39,15 @@ const uint8_t R2 = 2000;
 
 // CRGB variable. Basically it holds the color of each individual LED
 CRGB leds[NUM_LEDS];
+CRGB source1[NUM_LEDS]; // used to blend
+CRGB source2[NUM_LEDS]; // used to blend
+uint8_t blendAmount = 0;
+uint8_t patternCounter = 0;
+uint8_t source1Pattern = 0;
+uint8_t source2Pattern = 1;
+bool useSource1 = 1;
+bool bBlendActive = false;
+
 
 void initializeLEDS() {
   // Set LED configurations
@@ -93,7 +102,6 @@ void turnOffLEDs(uint8_t incrment) {
     }
     k++;
   }
-  FastLED.show();
 }
 
 void batteryAlarm(uint8_t typeOfAlarm) {
@@ -131,24 +139,7 @@ void batteryAlarm(uint8_t typeOfAlarm) {
   }
 }
 
-void readBatteryLevel() {
-  if (true) { 
-    battery_Vout = fscale(0.00, 4095.00, 0.00, 3.30, analogRead(BATTERY_PIN), 0);
-    battery_Vsource = battery_Vout * 1.275; // (R1+R2)*R2
-    if (!bSerialPrinterALL) {
-      Serial.print("battery_Vout:");
-      Serial.print(battery_Vout);
-      Serial.print(",");
-      Serial.print("battery_Vsource:");
-      Serial.println(battery_Vsource);
-    }
-    if (battery_Vout < 20) {
-      // batteryAlarm(1); //red alarm
-    } else if (battery_Vout < 40) {
-      // batteryAlarm(2); // yellow warning
-    }
-  }
-}
+
 
 float fscale(float originalMin, float originalMax, float newBegin, float newEnd, float inputValue, float curve){
   float OriginalRange = 0;
@@ -216,5 +207,22 @@ float fscale(float originalMin, float originalMax, float newBegin, float newEnd,
 
 
 
-
+void readBatteryLevel() {
+  if (true) { 
+    battery_Vout = fscale(0.00, 4095.00, 0.00, 3.30, analogRead(BATTERY_PIN), 0);
+    battery_Vsource = battery_Vout * 1.275; // (R1+R2)*R2
+    if (!bSerialPrinterALL) {
+      Serial.print("battery_Vout:");
+      Serial.print(battery_Vout);
+      Serial.print(",");
+      Serial.print("battery_Vsource:");
+      Serial.println(battery_Vsource);
+    }
+    if (battery_Vout < 20) {
+      // batteryAlarm(1); //red alarm
+    } else if (battery_Vout < 40) {
+      // batteryAlarm(2); // yellow warning
+    }
+  }
+}
 
