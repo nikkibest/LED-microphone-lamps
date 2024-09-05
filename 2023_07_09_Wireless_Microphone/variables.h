@@ -1,5 +1,7 @@
-#ifndef VARIABLES_H
-#define VARIABLES_H
+
+// #include <esp_now.h>
+// // #include "ESP32_NOW.h"
+// #include <WiFi.h>
 
 //////////////////// Rotary Encoder variables ////////////////////////////////
 #include <stdlib.h>
@@ -9,15 +11,16 @@
 #define ROTARY_ENCODER_VCC_PIN -1
 #define ROTARY_ENCODER_STEPS 4
 
-namespace ButtonState {
-  enum states {
-    soundState, // 0
-    soundStateBrightness, // 1
-    patternState, // 2
-    patternStateBrightness // 3
-  }
-}
-enum ButtonState buttonState = soundState;
+// namespace ButtonStates {
+//   enum states {
+//     soundState, // 0
+//     soundStateBrightness, // 1
+//     patternState, // 2
+//     patternStateBrightness // 3
+//   }
+// }
+// enum ButtonStates buttonState = soundState;
+uint8_t buttonState = 0;
 uint8_t rotaryEncoderVal = 0;
 bool buttonPushed = false;
 
@@ -25,22 +28,6 @@ bool buttonPushed = false;
 #define REDPIN 27
 #define GREENPIN 14
 #define BLUEPIN 12
-uint16_t ii_LED = 0;
-uint16_t ii_LED_Max = 3*100; // 3sec (converted from 10ms)
-const float battery_V_yellowAlarm = 3.0; // Voltage value [0-4.2 V]
-const float battery_V_redAlarm = 2.5; // Voltage value [0-4.2 V]
-bool bAlarmOn = false;
-bool bBatteryTimeoutTimerOn = false;
-unsigned long battery_last_time = 0;
-const uint16_t battery_timeout_duration = 30*1000; // 30sec (converted from ms)
-
-#define BATTERY_PIN 10 // TODO <-----!
-float battery_adc;      // battery ADC value
-float battery_Vout;     // battery voltage value
-float battery_Vsource;  // battery voltage value at source
-uint8_t typeOfBatAlarm = 0;// 0=noAlarm, 1=yellowAlarm, 2=redAlarm
-// const uint8_t R1 = 550; // resistor 1
-// const uint8_t R2 = 2000;// resistor 2
 
 //////////////////// Timers ///////////////////////////
 unsigned long current_time  = 0;
@@ -112,12 +99,10 @@ typedef struct test_struct {
 test_struct test;
 
 // Create a variable to store information about the peer
-esp_now_peer_info_t peerInfo;
+// esp_now_peer_info_t peerInfo;
 
 // REPLACE WITH YOUR ESP RECEIVER'S MAC ADDRESS
 // 9C:9C:1F:E2:0B:30
 uint8_t broadcastAddress1[] = {0x9C, 0x9C, 0x1F, 0xE2, 0x0B, 0x30};
 uint8_t broadcastAddress2[] = {0x08, 0x3A, 0xF2, 0xAC, 0xFF, 0xB0};
 uint8_t broadcastAddress3[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
-#endif
